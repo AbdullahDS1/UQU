@@ -1,0 +1,67 @@
+(() => {
+  const TARGET = "أوافق بشدة";
+
+  function getOptionText(input) {
+    const byFor = input.id ? document.querySelector(`label[for="${CSS.escape(input.id)}"]`) : null;
+    const wrapLabel = input.closest("label");
+    const label = byFor || wrapLabel;
+    const t =
+      (label && (label.innerText || label.textContent)) ||
+      input.getAttribute("aria-label") ||
+      input.getAttribute("title") ||
+      "";
+    return t.replace(/\s+/g, " ").trim();
+  }
+
+  function getX(input) {
+    const byFor = input.id ? document.querySelector(`label[for="${CSS.escape(input.id)}"]`) : null;
+    const wrapLabel = input.closest("label");
+    const el = byFor || wrapLabel || input;
+    const r = el.getBoundingClientRect();
+    return r.left + r.width / 2;
+  }
+
+  function selectStronglyAgreeInAllGroups(root = document) {
+    const radios = Array.from(root.querySelectorAll('input[type="radio"][name]'));
+    const groups = new Map();
+    for (const r of radios) {
+      if (!groups.has(r.name)) groups.set(r.name, []);
+      groups.get(r.name).push(r);
+    }
+
+    let changed = 0;
+
+    for (const inputs of groups.values()) {
+      if (!inputs.length) continue;
+
+      let target =
+        inputs.find((i) => getOptionText(i) === TARGET) ||
+        inputs.find((i) => getOptionText(i).includes(TARGET));
+
+      if (!target) {
+        target = inputs.slice().sort((a, b) => getX(b) - getX(a))[0];
+      }
+
+      if (target && !target.checked) {
+        target.click();
+        changed++;
+      }
+    }
+
+    return changed;
+  }
+
+  selectStronglyAgreeInAllGroups();
+
+  const intervalId = setInterval(() => {
+    selectStronglyAgreeInAllGroups();
+  }, 800);
+
+  const obs = new MutationObserver(() => selectStronglyAgreeInAllGroups());
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+
+  window.stopStronglyAgree = () => {
+    clearInterval(intervalId);
+    obs.disconnect();
+  };
+})();
