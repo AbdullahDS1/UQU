@@ -39,7 +39,7 @@ PureTV was built over a few sessions on a real TV. Claude ran the commands; I pr
 (See also the [Changelog](#changelog).)
 
 ---
-
+ 
 ## The device
 
 | | |
